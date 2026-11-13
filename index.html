@@ -2,7 +2,7 @@
 <html lang="id">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#fff6e9">
-<title>Baca Ceria v3 — Fonik Bahasa Indonesia</title>
+<title>Baca Ceria v3.1 — Fonik Bahasa Indonesia</title>
 <style>
 :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#fff8ee;font-family:ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;color:#26314a}
 .bc{max-width:900px;margin:0 auto;padding:20px 14px 38px}.bc button{font-family:inherit;cursor:pointer;touch-action:manipulation}.bc button:focus-visible,.bc select:focus-visible{outline:4px solid #4265ef;outline-offset:3px}.bc button:disabled{cursor:default;opacity:.7}
@@ -39,7 +39,7 @@
     <p>Mulai dari vokal dan suku kata, lalu mainkan Dengar &amp; Pilih, Susun Kata, dan Baca Gambar. Setiap sesi berisi 5 soal. Game mengacak urutan dan pilihan gambar, serta berusaha menghindari soal yang sama pada sesi berikutnya. Tersedia <b>e pepet</b> (misalnya pada "ke") dan <b>e taling</b> (misalnya pada "te") yang bisa berbeda menurut kata.</p>
     <div class="bc-parents">
       <label for="bc-voice">Sumber suara</label>
-      <select id="bc-voice"><option value="auto">Otomatis — suara Indonesia perangkat bila tersedia</option><option value="offline">Rekaman bawaan offline</option></select>
+      <select id="bc-voice"><option value="auto">Otomatis — rekaman suku kata lebih dulu</option><option value="offline">Rekaman bawaan offline</option></select>
       <div class="bc-rec-status" id="bc-voice-info" role="status"></div>
       <div><b>Koreksi pelafalan dengan suara orang tua</b><p>Jika masih ada bunyi yang kurang pas, rekam sendiri kata atau suku kata. Rekaman disimpan hanya di perangkat ini dan diputar lebih dulu saat anak belajar. Untuk memakai mikrofon, browser mungkin memerlukan izin.</p></div>
       <label for="bc-record-word">Bunyi yang ingin diganti (contoh: me, to, atau buku)</label>
@@ -48,7 +48,7 @@
       <div id="bc-record-status" class="bc-rec-status" role="status">Pilih bunyi, tekan Mulai rekam, ucapkan perlahan, lalu berhenti.</div>
     </div>
   </details>
-  <p class="bc-credits">Belajar bersama keluarga · Bisa digunakan offline · Tidak ada iklan, timer, atau nilai gagal</p>
+  <p class="bc-credits">Belajar bersama keluarga · Bisa digunakan offline · Tidak ada iklan, timer, atau nilai gagal · v3.1</p>
 </div>
 <script>
 (function(){'use strict';
@@ -75,7 +75,7 @@ const OFFLINE_AUDIO={"a":"SUQzBAAAAAAAIlRTU0UAAAAOAAADTGF2ZjYxLjcuMTAzAAAAAAAAAA
 let activeAudio=null, activeDone=null, nativeDone=null, speechGeneration=0;
 const getIdVoices=()=>{try{return (window.speechSynthesis?.getVoices()||[]).filter(v=>/^id(?:[-_]|$)/i.test(v.lang||''))}catch(e){return []}};
 const idVoice=()=>getIdVoices().sort((a,b)=>Number(b.localService)-Number(a.localService))[0]||null;
-function updateVoiceInfo(){const v=idVoice();voiceInfo.textContent=state.voiceMode==='offline'?'Memakai rekaman offline.':v?`Memakai suara Bahasa Indonesia dari perangkat: ${v.name}. Jika kurang pas, pilih Rekaman bawaan offline atau rekam bunyi sendiri.`:'Tidak ada suara Bahasa Indonesia perangkat yang tersedia. Memakai rekaman offline (tanpa mengganti ke suara Inggris).';}
+function updateVoiceInfo(){const v=idVoice();voiceInfo.textContent=state.voiceMode==='offline'?'Memakai rekaman bawaan untuk bunyi yang tersedia.':v?`Suku kata memakai rekaman Bahasa Indonesia bawaan agar tidak terbaca seperti bahasa Inggris. Kata lainnya memakai suara perangkat: ${v.name}.`:'Suku kata dan kata yang tersedia memakai rekaman Bahasa Indonesia bawaan (tanpa suara Inggris).';}
 try{if('speechSynthesis' in window)window.speechSynthesis.addEventListener?.('voiceschanged',updateVoiceInfo)}catch(e){}
 function stopAudio(){speechGeneration++;if(activeAudio){activeAudio.onended=null;activeAudio.onerror=null;activeAudio.pause();activeAudio=null}if(activeDone){const done=activeDone;activeDone=null;done(false)}if(nativeDone){const done=nativeDone;nativeDone=null;done(false)}try{window.speechSynthesis?.cancel()}catch(e){}}
 let dbPromise=null;
@@ -90,6 +90,7 @@ async function saySequence(parts){if(state.muted)return;stopAudio();const genera
  const recording=await getRecording(token);
  if(generation!==speechGeneration||state.muted)return;
  if(recording){await playClip(URL.createObjectURL(recording),generation,true)}
+ else if(OFFLINE_AUDIO[token]&&(state.voiceMode==='offline'||allSylls.includes(token)))await playClip('data:audio/mpeg;base64,'+OFFLINE_AUDIO[token],generation,false);
  else if(state.voiceMode==='auto'&&idVoice()){const spoken=await nativeTalk(token,generation);if(!spoken&&OFFLINE_AUDIO[token])await playClip('data:audio/mpeg;base64,'+OFFLINE_AUDIO[token],generation,false)}
  else if(OFFLINE_AUDIO[token])await playClip('data:audio/mpeg;base64,'+OFFLINE_AUDIO[token],generation,false);
  else if(idVoice())await nativeTalk(token,generation);
