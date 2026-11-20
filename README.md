@@ -15,7 +15,9 @@ Pilih tingkat **Pemula** atau **Lanjutan**, lalu pilih aktivitas.
 | **Susun Kata** | Urutkan potongan suku kata hingga membentuk kata. |
 | **Baca Gambar** | Baca kata yang tampil, lalu pilih gambar yang cocok. |
 
-Setiap sesi latihan berisi lima soal. Soal dan pilihan jawaban diacak, dan beberapa kata punya variasi gambar. Jawaban yang benar menambah bintang. Pilih **Sesi baru** untuk memulai latihan lagi.
+Setiap sesi reguler berisi lima soal. Soal dan pilihan jawaban diacak, dan beberapa kata punya variasi gambar. Jawaban yang benar menambah bintang. Pilih **Sesi baru** untuk memulai latihan lagi.
+
+**Latihan Lagi** muncul setelah sesi **Dengar & Pilih** jika ada bunyi yang dijawab keliru atau dibantu petunjuk. Setiap sesi ulang berisi hingga lima bunyi. Bunyi keluar dari daftar latihan setelah dijawab benar pada percobaan pertama tanpa petunjuk. Daftar latihan disimpan di browser untuk masing-masing tingkat.
 
 Di **Kenal Bunyi**, pilih **Meja** dan **Melati** untuk membandingkan bunyi **me** dengan e taling dan e pepet. Tiap tombol memutar suku kata, lalu kata utuh, dengan audio bawaan.
 
@@ -31,8 +33,16 @@ Pilih **Unduh cadangan suara** untuk menyimpan rekaman orang tua dalam satu file
 
 ## Menjalankan secara lokal
 
-Game ini menggunakan HTML, CSS, dan JavaScript dalam satu file, [`index.html`](index.html). Tidak perlu memasang dependensi atau menjalankan build. Buka file tersebut di browser untuk mencoba game. Untuk menguji perekaman mikrofon secara lokal, jalankan server berikut dari folder repositori dan buka [localhost:8000](http://localhost:8000/).
+Buka [`index.html`](index.html) dari folder repositori untuk bermain. Tidak perlu memasang dependensi atau menjalankan build. Untuk perekaman mikrofon secara lokal, jalankan server berikut dan buka [localhost:8000](http://localhost:8000/).
 
 ```sh
 python3 -m http.server 8000
 ```
+
+## Struktur proyek
+
+- `index.html` dan `styles.css` mengatur tampilan.
+- `js/game.js` mengatur aktivitas, soal, dan bintang.
+- `js/audio.js` menangani pemutaran, perekaman, dan cadangan suara.
+- `js/progress.js` menyimpan daftar Latihan Lagi.
+- `data/` berisi bank soal dan audio bawaan.
