@@ -21,7 +21,7 @@ Di **Kenal Bunyi**, pilih **Meja** dan **Melati** untuk membandingkan bunyi **me
 
 ## Untuk orang tua
 
-Buka panel **Untuk orang tua** di bagian bawah halaman untuk mengatur suara. Baca Ceria mengutamakan audio bawaan untuk contoh pelafalan dan suku kata dan dapat memakai suara Bahasa Indonesia dari perangkat untuk kata lain jika tersedia. Jika sebuah bunyi masih kurang pas, Anda bisa merekam kata atau suku kata sendiri. Rekaman orang tua diprioritaskan saat bunyi tersebut diputar.
+Buka panel **Untuk orang tua** di bagian bawah halaman untuk mengatur suara. Baca Ceria mengutamakan audio bawaan untuk contoh pelafalan dan suku kata dan dapat memakai suara Bahasa Indonesia dari perangkat untuk kata lain jika tersedia. Untuk mengganti suara, pilih **Bunyi yang ingin diganti**, tekan **Mulai rekam**, ucapkan bunyinya, lalu tekan **Berhenti & simpan**. Bunyi **me** lepas, **me** pada **meja**, **me** pada **melati**, dan kedua kata utuh bisa diganti secara terpisah. Gunakan **Dengar** untuk memeriksa atau **Hapus rekaman** untuk kembali ke suara bawaan.
 
 Perekaman memerlukan izin mikrofon dan browser yang mendukungnya. Bintang dan pengaturan disimpan di browser. Rekaman juga tersimpan secara lokal di browser yang sama.
 
