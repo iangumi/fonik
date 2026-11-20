@@ -42,8 +42,16 @@
       <select id="bc-voice"><option value="auto">Otomatis — utamakan rekaman contoh dan suku kata</option><option value="offline">Rekaman bawaan offline</option></select>
       <div class="bc-rec-status" id="bc-voice-info" role="status"></div>
       <div><b>Koreksi pelafalan dengan suara orang tua</b><p>Jika masih ada bunyi yang kurang pas, rekam sendiri kata atau suku kata. Rekaman disimpan hanya di perangkat ini dan diputar lebih dulu saat anak belajar. Untuk memakai mikrofon, browser mungkin memerlukan izin.</p></div>
-      <label for="bc-record-word">Bunyi yang ingin diganti (contoh: me, to, atau buku)</label>
-      <input id="bc-record-word" type="text" autocomplete="off" value="me" maxlength="40" inputmode="text">
+      <label for="bc-record-target">Bunyi yang ingin diganti</label>
+      <select id="bc-record-target">
+        <option value="me">me — suku kata tanpa contoh</option>
+        <option value="mé">me — e taling seperti di meja</option>
+        <option value="mê">me — e pepet seperti di melati</option>
+        <option value="meja">meja — kata utuh</option>
+        <option value="melati">melati — kata utuh</option>
+        <option value="">Huruf, suku kata, atau kata lain…</option>
+      </select>
+      <input id="bc-record-word" type="text" aria-label="Ketik bunyi lain" autocomplete="off" maxlength="40" inputmode="text" hidden>
       <div class="bc-rec-actions"><button id="bc-record" type="button">🎙️ Mulai rekam</button><button id="bc-record-play" type="button">▶️ Dengar</button><button id="bc-record-delete" type="button">🗑️ Hapus rekaman</button></div>
       <div id="bc-record-status" class="bc-rec-status" role="status">Pilih bunyi, tekan Mulai rekam, ucapkan perlahan, lalu berhenti.</div>
     </div>
@@ -89,8 +97,18 @@ function stopAudio(){speechGeneration++;if(activeAudio){activeAudio.onended=null
 let dbPromise=null;
 function audioDB(){if(!('indexedDB' in window))return Promise.resolve(null);if(dbPromise)return dbPromise;dbPromise=new Promise(resolve=>{try{const r=indexedDB.open('baca-ceria-parent-recordings',1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('clips'))r.result.createObjectStore('clips')};r.onsuccess=()=>resolve(r.result);r.onerror=()=>resolve(null)}catch(e){resolve(null)}});return dbPromise}
 async function getRecording(token){const db=await audioDB();if(!db)return null;return new Promise(resolve=>{try{const req=db.transaction('clips','readonly').objectStore('clips').get(token);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>resolve(null)}catch(e){resolve(null)}})}
-async function saveRecording(token,blob){const db=await audioDB();if(!db)throw Error('Penyimpanan rekaman tidak tersedia.');return new Promise((resolve,reject)=>{try{const req=db.transaction('clips','readwrite').objectStore('clips').put(blob,token);req.onsuccess=resolve;req.onerror=()=>reject(Error('Gagal menyimpan rekaman.'))}catch(e){reject(e)}})}
-async function deleteRecording(token){const db=await audioDB();if(!db)return;return new Promise(resolve=>{try{const req=db.transaction('clips','readwrite').objectStore('clips').delete(token);req.onsuccess=resolve;req.onerror=resolve}catch(e){resolve()}})}
+async function changeRecording(token, blob){
+ const db=await audioDB();
+ if(!db)throw Error('Penyimpanan rekaman tidak tersedia.');
+ await new Promise((resolve,reject)=>{
+   const transaction=db.transaction('clips','readwrite');
+   transaction.oncomplete=resolve;
+   transaction.onabort=()=>reject(transaction.error||Error('Perubahan rekaman gagal.'));
+   const clips=transaction.objectStore('clips');
+   if(blob)clips.put(blob,token);
+   else clips.delete(token);
+ });
+}
 function nativeTalk(token,generation){return new Promise(resolve=>{try{const voice=idVoice();if(!voice||!window.SpeechSynthesisUtterance)return resolve(false);const u=new SpeechSynthesisUtterance(token);u.voice=voice;u.lang='id-ID';u.rate=0.78;u.pitch=1;u.volume=1;let ended=false;const done=(ok)=>{if(ended)return;ended=true;if(nativeDone===done)nativeDone=null;resolve(ok)};nativeDone=done;u.onend=()=>done(true);u.onerror=()=>done(false);if(generation!==speechGeneration)return done(false);window.speechSynthesis.speak(u)}catch(e){resolve(false)}})}
 function playClip(src,generation,revokeUrl){return new Promise(resolve=>{try{const a=new Audio(src);activeAudio=a;let ended=false;const done=(ok)=>{if(ended)return;ended=true;if(revokeUrl)URL.revokeObjectURL(src);if(activeAudio===a)activeAudio=null;if(activeDone===done)activeDone=null;resolve(ok)};activeDone=done;a.onended=()=>done(true);a.onerror=()=>done(false);const play=a.play();if(play&&play.catch)play.catch(()=>done(false))}catch(e){if(revokeUrl)URL.revokeObjectURL(src);resolve(false)}})}
 async function saySequence(parts){if(state.muted)return;stopAudio();const generation=speechGeneration;for(const token of parts.map(p=>String(p).trim().toLowerCase()).filter(Boolean)){
@@ -152,17 +170,95 @@ levelEl.addEventListener('change',()=>{state.level=levelEl.value;state.selected=
 muteEl.addEventListener('click',()=>{state.muted=!state.muted;stopAudio();persist();updateChrome()});
 voiceEl.addEventListener('change',()=>{state.voiceMode=voiceEl.value;stopAudio();persist();updateVoiceInfo()});
 // Parent voice corrections are stored only on this device using IndexedDB.
-const recordInput=root.querySelector('#bc-record-word'),recordBtn=root.querySelector('#bc-record'),recordPlay=root.querySelector('#bc-record-play'),recordDelete=root.querySelector('#bc-record-delete'),recordStatus=root.querySelector('#bc-record-status');
-let recorder=null,micStream=null,recordChunks=[],recordToken=null;
-function normalizeToken(){return String(recordInput.value||'').trim().toLowerCase().replace(/\s+/g,' ')}
-recordBtn.addEventListener('click',async()=>{
- if(recorder&&recorder.state==='recording'){recorder.stop();recordBtn.textContent='🎙️ Mulai rekam';return}
- const token=normalizeToken();if(!token){recordStatus.textContent='Ketik dulu bunyi yang mau direkam.';return}
- if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){recordStatus.textContent='Browser tidak mendukung rekaman mikrofon. Coba Chrome atau browser modern.';return}
- stopAudio();try{micStream=await navigator.mediaDevices.getUserMedia({audio:true});recordChunks=[];recordToken=token;recorder=new MediaRecorder(micStream);recorder.ondataavailable=e=>{if(e.data?.size)recordChunks.push(e.data)};recorder.onstop=async()=>{try{const blob=new Blob(recordChunks,{type:recorder.mimeType||'audio/webm'});await saveRecording(recordToken,blob);recordStatus.textContent=`✅ Rekaman "${recordToken}" tersimpan di perangkat ini. Coba tekan Dengar.`}catch(e){recordStatus.textContent='Gagal menyimpan: '+e.message}finally{micStream?.getTracks().forEach(t=>t.stop());micStream=null;recorder=null;recordBtn.textContent='🎙️ Mulai rekam'}};recorder.start();recordBtn.textContent='⏹️ Berhenti & simpan';recordStatus.textContent=`🔴 Sedang merekam "${token}"… ucapkan bunyinya perlahan, lalu tekan Berhenti.`}catch(e){recordStatus.textContent='Izin mikrofon ditolak / tidak tersedia: '+e.message;micStream?.getTracks().forEach(t=>t.stop())}
+const recordTarget=root.querySelector('#bc-record-target'),recordInput=root.querySelector('#bc-record-word');
+const recordBtn=root.querySelector('#bc-record'),recordPlay=root.querySelector('#bc-record-play'),recordDelete=root.querySelector('#bc-record-delete'),recordStatus=root.querySelector('#bc-record-status');
+let recorder=null;
+function recordingTarget(){
+ return {
+   token:recordTarget.value||recordInput.value.trim().toLowerCase().normalize('NFC').replace(/\s+/g,' '),
+   label:recordTarget.value?recordTarget.selectedOptions[0].textContent:recordInput.value.trim()
+ };
+}
+function lockRecordingControls(locked){
+ recordTarget.disabled=recordInput.disabled=recordPlay.disabled=recordDelete.disabled=locked;
+}
+recordTarget.addEventListener('change',()=>{
+ recordInput.hidden=!!recordTarget.value;
+ if(!recordInput.hidden)recordInput.focus();
+ recordStatus.textContent='Tekan Mulai rekam, ucapkan bunyinya, lalu berhenti.';
 });
-recordPlay.addEventListener('click',()=>{const t=normalizeToken();if(!t)return;recordStatus.textContent=`Memutar "${t}". Jika ada rekaman orang tua, itu yang dipakai.`;say(t)});
-recordDelete.addEventListener('click',async()=>{const t=normalizeToken();if(!t)return;await deleteRecording(t);recordStatus.textContent=`Rekaman "${t}" dihapus. Bunyi kembali memakai suara Indonesia perangkat atau rekaman bawaan.`});
+recordBtn.addEventListener('click',async()=>{
+ if(recorder?.state==='recording'){
+   recordBtn.disabled=true;
+   recorder.stop();
+   return;
+ }
+ const {token,label}=recordingTarget();
+ if(!token){recordStatus.textContent='Ketik dulu bunyi yang mau direkam.';return}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){recordStatus.textContent='Browser ini tidak mendukung rekaman mikrofon.';return}
+
+ lockRecordingControls(true);
+ recordBtn.disabled=true;
+ stopAudio();
+ let stream;
+ const finish=()=>{
+   stream?.getTracks().forEach(track=>track.stop());
+   recorder=null;
+   recordBtn.textContent='🎙️ Mulai rekam';
+   recordBtn.disabled=false;
+   lockRecordingControls(false);
+ };
+ try{
+   stream=await navigator.mediaDevices.getUserMedia({audio:true});
+   const chunks=[];
+   recorder=new MediaRecorder(stream);
+   let recordingError=null;
+   recorder.ondataavailable=event=>{if(event.data.size)chunks.push(event.data)};
+   recorder.onerror=event=>{recordingError=event.error||Error('Mikrofon berhenti saat merekam.')};
+   recorder.onstop=async()=>{
+     recordBtn.disabled=true;
+     stream.getTracks().forEach(track=>track.stop());
+     stream=null;
+     try{
+       if(recordingError)throw recordingError;
+       const clip=new Blob(chunks,{type:recorder.mimeType});
+       if(!clip.size)throw Error('Tidak ada audio yang terekam.');
+       await changeRecording(token,clip);
+       recordStatus.textContent=`✅ Rekaman “${label}” tersimpan. Tekan Dengar untuk memeriksa.`;
+     }catch(error){recordStatus.textContent='Gagal menyimpan: '+error.message}
+     finally{finish()}
+   };
+   recorder.start();
+   recordBtn.textContent='⏹️ Berhenti & simpan';
+   recordStatus.textContent=`🔴 Sedang merekam “${label}”…`;
+   recordBtn.disabled=false;
+ }catch(error){
+   recordStatus.textContent='Mikrofon tidak tersedia: '+error.message;
+   finish();
+ }
+});
+recordPlay.addEventListener('click',()=>{
+ const {token,label}=recordingTarget();
+ if(!token)return;
+ if(state.muted){recordStatus.textContent='Aktifkan suara untuk mendengar rekaman.';return}
+ recordStatus.textContent=`Memutar “${label}”.`;
+ say(token);
+});
+recordDelete.addEventListener('click',async()=>{
+ const {token,label}=recordingTarget();
+ if(!token)return;
+ lockRecordingControls(true);
+ recordBtn.disabled=true;
+ try{
+   await changeRecording(token,null);
+   stopAudio();
+   recordStatus.textContent=`Rekaman “${label}” dihapus. Bunyi kembali ke suara bawaan.`;
+ }catch(error){recordStatus.textContent='Gagal menghapus: '+error.message}
+ finally{
+   recordBtn.disabled=false;
+   lockRecordingControls(false);
+ }
+});
 updateVoiceInfo();if(state.mode==='learn')render();else startRound();
 })();
 </script></body></html>
