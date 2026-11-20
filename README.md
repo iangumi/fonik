@@ -25,6 +25,10 @@ Buka panel **Untuk orang tua** di bagian bawah halaman untuk mengatur suara. Bac
 
 Perekaman memerlukan izin mikrofon dan browser yang mendukungnya. Bintang dan pengaturan disimpan di browser. Rekaman juga tersimpan secara lokal di browser yang sama.
 
+### Cadangan suara
+
+Pilih **Unduh cadangan suara** untuk menyimpan rekaman orang tua dalam satu file JSON. Simpan file di tempat yang Anda pilih, lalu buka **Impor cadangan suara** di perangkat atau browser tujuan. Impor menambahkan rekaman yang belum ada dan mempertahankan rekaman yang sudah tersimpan. Jika ingin mengganti rekaman yang sudah ada dengan versi cadangan, hapus rekaman itu terlebih dahulu, lalu impor lagi.
+
 ## Menjalankan secara lokal
 
 Game ini menggunakan HTML, CSS, dan JavaScript dalam satu file, [`index.html`](index.html). Tidak perlu memasang dependensi atau menjalankan build. Buka file tersebut di browser untuk mencoba game. Untuk menguji perekaman mikrofon secara lokal, jalankan server berikut dari folder repositori dan buka [localhost:8000](http://localhost:8000/).
