@@ -54,6 +54,13 @@
       <input id="bc-record-word" type="text" aria-label="Ketik bunyi lain" autocomplete="off" maxlength="40" inputmode="text" hidden>
       <div class="bc-rec-actions"><button id="bc-record" type="button">🎙️ Mulai rekam</button><button id="bc-record-play" type="button">▶️ Dengar</button><button id="bc-record-delete" type="button">🗑️ Hapus rekaman</button></div>
       <div id="bc-record-status" class="bc-rec-status" role="status">Pilih bunyi, tekan Mulai rekam, ucapkan perlahan, lalu berhenti.</div>
+      <div><b>Cadangan rekaman</b><p>Simpan cadangan untuk dipakai di browser atau perangkat lain. Impor menambahkan bunyi yang belum punya rekaman di perangkat ini.</p></div>
+      <div class="bc-rec-actions">
+        <button id="bc-backup-export" type="button">Unduh cadangan suara</button>
+        <button id="bc-backup-import" type="button">Impor cadangan suara</button>
+        <input id="bc-backup-file" type="file" accept=".json,application/json" aria-label="Pilih file cadangan suara" hidden>
+      </div>
+      <div id="bc-backup-status" class="bc-rec-status" role="status"></div>
     </div>
   </details>
   <p class="bc-credits">Belajar bersama keluarga · Bisa digunakan offline · Tidak ada iklan, timer, atau nilai gagal · v3.1</p>
@@ -258,6 +265,108 @@ recordDelete.addEventListener('click',async()=>{
    recordBtn.disabled=false;
    lockRecordingControls(false);
  }
+});
+const exportBackup=root.querySelector('#bc-backup-export'),importBackup=root.querySelector('#bc-backup-import');
+const backupFile=root.querySelector('#bc-backup-file'),backupStatus=root.querySelector('#bc-backup-status');
+const maxBackupBytes=32*1024*1024;
+const backupFormat='baca-ceria-voice-backup';
+
+async function runBackupAction(action){
+ exportBackup.disabled=importBackup.disabled=true;
+ try{backupStatus.textContent=await action()}
+ catch(error){backupStatus.textContent=error.message}
+ finally{exportBackup.disabled=importBackup.disabled=false}
+}
+async function readBackupClips(){
+ const db=await audioDB();
+ if(!db)throw Error('Penyimpanan rekaman tidak tersedia.');
+ return new Promise((resolve,reject)=>{
+   const transaction=db.transaction('clips','readonly');
+   const clips=transaction.objectStore('clips');
+   const keys=clips.getAllKeys();
+   const values=clips.getAll();
+   transaction.oncomplete=()=>resolve(keys.result.map((token,index)=>({token,clip:values.result[index]})));
+   transaction.onabort=()=>reject(Error('Rekaman tidak bisa dibaca.'));
+ });
+}
+function toBase64(buffer){
+ const bytes=new Uint8Array(buffer);
+ let binary='';
+ for(let offset=0;offset<bytes.length;offset+=8192){
+   binary+=String.fromCharCode(...bytes.subarray(offset,offset+8192));
+ }
+ return btoa(binary);
+}
+function decodeBackup(text){
+ let backup;
+ try{backup=JSON.parse(text)}
+ catch(error){throw Error('File cadangan tidak valid.')}
+ if(backup?.format!==backupFormat||backup.version!==1||!Array.isArray(backup.clips)||!backup.clips.length){
+   throw Error('Format cadangan suara tidak didukung.');
+ }
+ const tokens=new Set();
+ return backup.clips.map(entry=>{
+   const {token,type,audio}=entry||{};
+   if(typeof token!=='string'||!token||token.length>40||token!==token.trim().toLowerCase()||tokens.has(token)||
+      typeof type!=='string'||(type&&!/^audio\/[a-z0-9.+-]+(?:;[ -~]*)?$/i.test(type))||typeof audio!=='string'||!audio){
+     throw Error('Ada rekaman yang tidak valid di file cadangan.');
+   }
+   tokens.add(token);
+   let binary;
+   try{binary=atob(audio)}
+   catch(error){throw Error('Data audio di file cadangan rusak.')}
+   return {token,clip:new Blob([Uint8Array.from(binary,character=>character.charCodeAt(0))],{type})};
+ });
+}
+async function restoreBackupClips(entries){
+ const db=await audioDB();
+ if(!db)throw Error('Penyimpanan rekaman tidak tersedia.');
+ return new Promise((resolve,reject)=>{
+   const transaction=db.transaction('clips','readwrite');
+   const clips=transaction.objectStore('clips');
+   let added=0;
+   transaction.oncomplete=()=>resolve(added);
+   transaction.onabort=()=>reject(Error('Impor gagal. Periksa ruang penyimpanan browser.'));
+   for(const {token,clip} of entries){
+     const existing=clips.getKey(token);
+     existing.onsuccess=()=>{
+       if(existing.result!==undefined)return;
+       clips.add(clip,token);
+       added++;
+     };
+   }
+ });
+}
+exportBackup.addEventListener('click',()=>runBackupAction(async()=>{
+ const entries=await readBackupClips();
+ if(!entries.length)return 'Belum ada rekaman untuk dicadangkan.';
+ if(entries.reduce((size,{clip})=>size+Math.ceil(clip.size/3)*4,0)>maxBackupBytes)throw Error('Cadangan melebihi batas 32 MB.');
+ const clips=await Promise.all(entries.map(async({token,clip})=>({
+   token,type:clip.type,audio:toBase64(await clip.arrayBuffer())
+ })));
+ const file=new Blob([JSON.stringify({format:backupFormat,version:1,clips})],{type:'application/json'});
+ if(file.size>maxBackupBytes)throw Error('Cadangan melebihi batas 32 MB.');
+ const url=URL.createObjectURL(file);
+ const link=document.createElement('a');
+ link.href=url;
+ link.download='baca-ceria-cadangan-suara.json';
+ document.body.append(link);
+ link.click();
+ link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+ return `${clips.length} rekaman siap diunduh.`;
+}));
+importBackup.addEventListener('click',()=>backupFile.click());
+backupFile.addEventListener('change',()=>{
+ const file=backupFile.files[0];
+ backupFile.value='';
+ if(!file)return;
+ return runBackupAction(async()=>{
+   if(file.size>maxBackupBytes)throw Error('Cadangan melebihi batas 32 MB.');
+   const entries=decodeBackup(await file.text());
+   const added=await restoreBackupClips(entries);
+   return `${added} rekaman ditambahkan. ${entries.length-added} dipertahankan karena sudah ada.`;
+ });
 });
 updateVoiceInfo();if(state.mode==='learn')render();else startRound();
 })();
