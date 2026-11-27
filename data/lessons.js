@@ -14,3 +14,10 @@ for(let left=1;left<=10;left++){
    mathPrompts.subtraction.push({id:`${left}-${right}`,left,right,symbol:'−',spokenOperator:'dikurangi',answer:left-right});
  }
 }
+
+const countPictures=[
+ {icon:'🍎',name:'apel'}, {icon:'🍌',name:'pisang'}, {icon:'⭐',name:'bintang'},
+ {icon:'🐟',name:'ikan'}, {icon:'🎈',name:'balon'}
+];
+const countPrompts=mathNumberWords.slice(1).map((_,index)=>({id:String(index+1),answer:index+1}));
+const countQuestion='ada berapa gambar?';
