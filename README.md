@@ -15,6 +15,7 @@ Pilih tingkat **Pemula** atau **Lanjutan**, lalu pilih aktivitas.
 | **Susun Kata** | Urutkan potongan suku kata hingga membentuk kata. |
 | **Baca Gambar** | Baca kata yang tampil, lalu pilih gambar yang cocok. |
 | **Berhitung** | Pilih jawaban untuk penjumlahan hingga 10. Tingkat Lanjutan juga berisi pengurangan. Tekan **Dengarkan soal** untuk mendengar pertanyaan dalam Bahasa Indonesia. |
+| **Hitung Gambar** | Ketuk gambar satu per satu dan pilih jumlahnya. Pemula menghitung 1–5 gambar dan Lanjutan hingga 10. Tekan **Dengarkan soal** untuk mendengar pertanyaannya. |
 
 Setiap sesi reguler berisi lima soal. Soal dan pilihan jawaban diacak, dan beberapa kata punya variasi gambar. Jawaban yang benar menambah bintang. Pilih **Sesi baru** untuk memulai latihan lagi.
 
