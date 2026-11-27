@@ -5,3 +5,12 @@ const learnConsonants=['b','m','s','k','p','t','d','l','r','g','n','j','c','h','
 const learnSylls=learnConsonants.flatMap(c=>vowels.map(v=>c+v));
 const basicSylls=[...new Set(basic.flatMap(w=>w.parts).filter(x=>x.length<=2).concat(learnSylls.filter(x=>['b','m','s','k','p','t'].includes(x[0]))))];
 const allSylls=[...new Set([...learnSylls,...vowels,...basic.flatMap(w=>w.parts),...advanced.flatMap(w=>w.parts)])];
+
+const mathNumberWords=['nol','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan','sepuluh'];
+const mathPrompts={addition:[],subtraction:[]};
+for(let left=1;left<=10;left++){
+ for(let right=1;right<=left;right++){
+   if(left+right<=10)mathPrompts.addition.push({id:`${left}+${right}`,left,right,symbol:'+',spokenOperator:'ditambah',answer:left+right});
+   mathPrompts.subtraction.push({id:`${left}-${right}`,left,right,symbol:'−',spokenOperator:'dikurangi',answer:left-right});
+ }
+}

@@ -14,6 +14,7 @@ Pilih tingkat **Pemula** atau **Lanjutan**, lalu pilih aktivitas.
 | **Dengar & Pilih** | Dengarkan bunyi, lalu pilih suku kata yang sesuai. |
 | **Susun Kata** | Urutkan potongan suku kata hingga membentuk kata. |
 | **Baca Gambar** | Baca kata yang tampil, lalu pilih gambar yang cocok. |
+| **Berhitung** | Pilih jawaban untuk penjumlahan hingga 10. Tingkat Lanjutan juga berisi pengurangan. Tekan **Dengarkan soal** untuk mendengar pertanyaan dalam Bahasa Indonesia. |
 
 Setiap sesi reguler berisi lima soal. Soal dan pilihan jawaban diacak, dan beberapa kata punya variasi gambar. Jawaban yang benar menambah bintang. Pilih **Sesi baru** untuk memulai latihan lagi.
 
