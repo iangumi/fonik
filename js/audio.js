@@ -29,6 +29,9 @@ async function saySequence(parts){if(state.muted)return;stopAudio();const genera
  const recording=await getRecording(token);
  if(generation!==speechGeneration||state.muted)return;
  if(recording){await playClip(URL.createObjectURL(recording),generation,true)}
+ else if(Object.hasOwn(activityAudio,token)){
+   await playClip('data:audio/mpeg;base64,'+activityAudio[token],generation,false);
+ }
  else if(Object.hasOwn(mathAudio,token)){
    await playClip('data:audio/mpeg;base64,'+mathAudio[token],generation,false);
  }
