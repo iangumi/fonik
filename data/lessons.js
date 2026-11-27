@@ -15,9 +15,9 @@ for(let left=1;left<=10;left++){
  }
 }
 
-const countPictures=[
- {icon:'🍎',name:'apel'}, {icon:'🍌',name:'pisang'}, {icon:'⭐',name:'bintang'},
- {icon:'🐟',name:'ikan'}, {icon:'🎈',name:'balon'}
-];
+const photoWords=['apel','pisang','lemon','jeruk','balon'];
+const moduleNames={
+ learn:'kenal bunyi',listen:'dengar dan pilih',build:'susun kata',picture:'baca gambar',
+ math:'berhitung',count:'hitung gambar',guess:'tebak gambar'
+};
 const countPrompts=mathNumberWords.slice(1).map((_,index)=>({id:String(index+1),answer:index+1}));
-const countQuestion='ada berapa gambar?';

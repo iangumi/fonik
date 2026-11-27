@@ -6,7 +6,7 @@ Baca Ceria adalah permainan belajar membaca untuk anak yang baru mulai mengenal 
 
 ## Cara bermain
 
-Pilih tingkat **Pemula** atau **Lanjutan**, lalu pilih aktivitas.
+Pilih tingkat **Pemula** atau **Lanjutan**, lalu pilih aktivitas. Nama aktivitas dibacakan saat dipilih jika suara aktif.
 
 | Aktivitas | Latihan |
 | --- | --- |
@@ -15,7 +15,8 @@ Pilih tingkat **Pemula** atau **Lanjutan**, lalu pilih aktivitas.
 | **Susun Kata** | Urutkan potongan suku kata hingga membentuk kata. |
 | **Baca Gambar** | Baca kata yang tampil, lalu pilih gambar yang cocok. |
 | **Berhitung** | Pilih jawaban untuk penjumlahan hingga 10. Tingkat Lanjutan juga berisi pengurangan. Tekan **Dengarkan soal** untuk mendengar pertanyaan dalam Bahasa Indonesia. |
-| **Hitung Gambar** | Ketuk gambar satu per satu dan pilih jumlahnya. Pemula menghitung 1–5 gambar dan Lanjutan hingga 10. Tekan **Dengarkan soal** untuk mendengar pertanyaannya. |
+| **Hitung Gambar** | Ketuk gambar satu per satu dan pilih jumlahnya. Pemula menghitung 1–5 gambar dan Lanjutan hingga 10. Tekan **Dengarkan soal** untuk mendengar nama benda yang dihitung. |
+| **Tebak Gambar** | Lihat satu foto, lalu ketuk salah satu dari tiga kata. Setiap kata dibacakan saat disentuh. |
 
 Setiap sesi reguler berisi lima soal. Soal dan pilihan jawaban diacak, dan beberapa kata punya variasi gambar. Jawaban yang benar menambah bintang. Pilih **Sesi baru** untuk memulai latihan lagi.
 
@@ -48,3 +49,13 @@ python3 -m http.server 8000
 - `js/audio.js` menangani pemutaran, perekaman, dan cadangan suara.
 - `js/progress.js` menyimpan daftar Latihan Lagi.
 - `data/` berisi bank soal dan audio bawaan.
+
+## Kredit foto
+
+| Foto | Sumber dan pembuat | Lisensi | Perubahan |
+| --- | --- | --- | --- |
+| Apel | [Apple in lightbox](https://commons.wikimedia.org/wiki/File:Apple_in_lightbox.jpg), Slewrate | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0/) | Diperkecil |
+| Pisang | [Banana-Single](https://commons.wikimedia.org/wiki/File:Banana-Single.jpg), Evan-Amos | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | Diperkecil |
+| Lemon | [Whole-Lemon](https://commons.wikimedia.org/wiki/File:Whole-Lemon.jpg), Evan-Amos | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | Diperkecil |
+| Jeruk | [Orange-Whole-&-Split](https://commons.wikimedia.org/wiki/File:Orange-Whole-%26-Split.jpg), Evan-Amos | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) | Dipotong untuk menampilkan satu jeruk dan diperkecil |
+| Balon | [Girl inflating a red balloon](https://commons.wikimedia.org/wiki/File:Girl_inflating_a_red_balloon.jpg), Renato Ganoza | [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/) | Dipotong untuk menampilkan balon dan diperkecil |
